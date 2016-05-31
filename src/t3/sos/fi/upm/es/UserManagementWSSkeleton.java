@@ -18,8 +18,11 @@ import es.upm.fi.sos.t3.usermanagement.User;
 public class UserManagementWSSkeleton {
 	private User superUser;
 	private Map<String, User> users;
+	private static int instance = 0;
 	
 	public UserManagementWSSkeleton(){
+		System.out.println("Creando nueva instancia. Hasta ahora hay: " + (++instance));
+
 		users = new HashMap<String, User>();
 		superUser = new User();
 		
@@ -36,9 +39,7 @@ public class UserManagementWSSkeleton {
 	 * 
 	 * @return
 	 */
-	public void logout(
-
-	) {
+	public void logout() {
 		// TODO : fill this with the necessary business logic
 
 	}
@@ -57,6 +58,7 @@ public class UserManagementWSSkeleton {
 	 */
 	public es.upm.fi.sos.t3.usermanagement.Response login(
 			es.upm.fi.sos.t3.usermanagement.User user) {
+		
 		User u;
 		Response response = new Response();
 		response.setResponse(false);
