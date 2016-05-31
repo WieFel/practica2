@@ -9,6 +9,8 @@ package t3.sos.fi.upm.es;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.axis2.context.ServiceContext;
+
 import es.upm.fi.sos.t3.usermanagement.Response;
 import es.upm.fi.sos.t3.usermanagement.User;
 
@@ -127,4 +129,13 @@ public class UserManagementWSSkeleton {
 				+ this.getClass().getName() + "#removeUser");
 	}
 
+	// Function will be called when a new session starts
+	public void init(ServiceContext serviceContext){
+		// TODO: Our code
+	}
+	
+	// Funciton will be called when a session ends
+	public void destroy(ServiceContext serviceContext){
+		// TODO: Our code
+	}
 }
