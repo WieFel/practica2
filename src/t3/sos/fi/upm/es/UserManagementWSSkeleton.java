@@ -6,10 +6,27 @@
  */
 package t3.sos.fi.upm.es;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import es.upm.fi.sos.t3.usermanagement.User;
+
 /**
  * UserManagementWSSkeleton java skeleton for the axisService
  */
 public class UserManagementWSSkeleton {
+	private User superUser;
+	private List<User> userList;
+	
+	public UserManagementWSSkeleton(){
+		userList = new ArrayList<User>();
+		superUser = new User();
+		
+		// Set the superuser
+		superUser.setName("admin");
+		superUser.setPwd("admin");
+		userList.add(superUser);
+	}
 
 	/**
 	 * Esta operación cierra la sesión de un usuario. A partir de ese momento todas las llamadas a
@@ -26,16 +43,15 @@ public class UserManagementWSSkeleton {
 	}
 
 	/**
-	 * Cada llamada a esta operación comienza una nueva sesión para un usuario (user). El parámetro
-	 * user tiene dos elementos: nombre (name) y contraseña (pwd). La respuesta (Response) es un
-	 * booleano. Si esta operación tiene éxito, el usuario podrá llamar al resto de las operaciones
-	 * del servicio usando esa misma sesión.
+	 * Cada llamada a esta operación comienza una nueva sesión para un usuario (user).  La respuesta (Response) es un
+	 * booleano. 
 	 * 
 	 * Si se llama a cualquier otra operación del servicio (salvo logout) sin haber comenzado una
 	 * sesión con éxito, la operación llamada devolverá siempre false.
 	 * 
-	 * @param user
-	 * @return response	El valor true se devuelve si la operación de login tiene éxito. En caso 
+	 * @param user		El parámetro user tiene dos elementos: nombre (name) y contraseña (pwd).
+	 * @return response	Si esta operación tiene éxito, el usuario podrá llamar al resto de las operaciones del servicio 
+	 * 					usando esa misma sesión. El valor true se devuelve si la operación de login tiene éxito. En caso 
 	 * 					contrario se devuelve false.
 	 */
 	public es.upm.fi.sos.t3.usermanagement.Response login(
