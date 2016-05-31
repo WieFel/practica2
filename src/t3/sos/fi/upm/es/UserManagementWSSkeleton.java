@@ -6,9 +6,10 @@
  */
 package t3.sos.fi.upm.es;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+import es.upm.fi.sos.t3.usermanagement.Response;
 import es.upm.fi.sos.t3.usermanagement.User;
 
 /**
@@ -16,16 +17,16 @@ import es.upm.fi.sos.t3.usermanagement.User;
  */
 public class UserManagementWSSkeleton {
 	private User superUser;
-	private List<User> userList;
+	private Map<String, User> users;
 	
 	public UserManagementWSSkeleton(){
-		userList = new ArrayList<User>();
+		users = new HashMap<String, User>();
 		superUser = new User();
 		
 		// Set the superuser
 		superUser.setName("admin");
 		superUser.setPwd("admin");
-		userList.add(superUser);
+		users.put(superUser.getName(), superUser);
 	}
 
 	/**
@@ -43,7 +44,7 @@ public class UserManagementWSSkeleton {
 	}
 
 	/**
-	 * Cada llamada a esta operación comienza una nueva sesión para un usuario (user).  La respuesta (Response) es un
+	 * Cada llamada a esta operación comienza una nueva sesión para un usuario (user). La respuesta (Response) es un
 	 * booleano. 
 	 * 
 	 * Si se llama a cualquier otra operación del servicio (salvo logout) sin haber comenzado una
@@ -56,9 +57,20 @@ public class UserManagementWSSkeleton {
 	 */
 	public es.upm.fi.sos.t3.usermanagement.Response login(
 			es.upm.fi.sos.t3.usermanagement.User user) {
-		// TODO : fill this with the necessary business logic
-		throw new java.lang.UnsupportedOperationException("Please implement "
-				+ this.getClass().getName() + "#login");
+		User u;
+		Response response = new Response();
+		response.setResponse(false);
+		
+		if (users.containsKey(user.getName())) {
+			// User is registered.
+			u = users.get(user.getName());
+			if (u.getPwd().equals(user.getPwd()))
+				// Initialize and save session
+				// TODO: how to init a session??
+				response.setResponse(true);
+		}	
+		
+		return response;
 	}
 
 	/**
