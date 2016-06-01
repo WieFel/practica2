@@ -102,7 +102,7 @@ public class UserManagementWSSkeleton {
 	public es.upm.fi.sos.t3.usermanagement.Response addUser(
 			es.upm.fi.sos.t3.usermanagement.User user1) {
 
-		// TODO test if superuser is calling the method
+		// TODO test if superuser is calling the method and return false if it is not the superuser
 		Response response = new Response();
 
 		if (users.containsKey(user1.getName()))
@@ -131,9 +131,19 @@ public class UserManagementWSSkeleton {
 	 */
 	public es.upm.fi.sos.t3.usermanagement.Response changePassword(
 			es.upm.fi.sos.t3.usermanagement.PasswordPair passwordPair) {
-		// TODO : fill this with the necessary business logic
-		throw new java.lang.UnsupportedOperationException("Please implement "
-				+ this.getClass().getName() + "#changePassword");
+
+		// TODO check if user started session
+		Response response = new Response();
+		User user = null; // TODO get user from session
+
+		if (user.getPwd().equals(passwordPair.getOldpwd())) {
+			// passwords correct
+			user.setPwd(passwordPair.getNewpwd());
+			response.setResponse(true);
+		} else
+			response.setResponse(false);
+
+		return response;
 	}
 
 	/**
@@ -149,7 +159,8 @@ public class UserManagementWSSkeleton {
 	 */
 	public es.upm.fi.sos.t3.usermanagement.Response removeUser(
 			es.upm.fi.sos.t3.usermanagement.Username username) {
-		// TODO check if superuser is calling this method
+		
+		// TODO check if superuser is calling this method and return false if it is not the superuser
 
 		Response response = new Response();
 
