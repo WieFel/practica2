@@ -9,7 +9,9 @@ package t3.sos.fi.upm.es;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.axis2.context.MessageContext;
 import org.apache.axis2.context.ServiceContext;
+import org.apache.axis2.context.SessionContext;
 
 import es.upm.fi.sos.t3.usermanagement.Response;
 import es.upm.fi.sos.t3.usermanagement.User;
@@ -20,7 +22,7 @@ import es.upm.fi.sos.t3.usermanagement.User;
 public class UserManagementWSSkeleton {
 	private User superUser;
 	private Map<String, User> users;
-	private Map<String, ServiceContext> sessions;
+	private Map<String, String> sessions;
 	private static int instance = 0;
 
 	public UserManagementWSSkeleton() {
@@ -50,20 +52,17 @@ public class UserManagementWSSkeleton {
 	}
 
 	/**
-	 * Cada llamada a esta operación comienza una nueva sesión para un usuario
-	 * (user). La respuesta (Response) es un booleano.
+	 * Cada llamada a esta operación comienza una nueva sesión para un usuario (user). La respuesta (Response) es un
+	 * booleano. Si esta operación tiene éxito, el usuario podrá llamar al resto de las operaciones del servicio 
+	 * usando esa misma sesión. 
 	 * 
 	 * Si se llama a cualquier otra operación del servicio (salvo logout) sin
 	 * haber comenzado una sesión con éxito, la operación llamada devolverá
 	 * siempre false.
 	 * 
-	 * @param user
-	 *            El parámetro user tiene dos elementos: nombre (name) y
-	 *            contraseña (pwd).
-	 * @return response Si esta operación tiene éxito, el usuario podrá llamar
-	 *         al resto de las operaciones del servicio usando esa misma sesión.
-	 *         El valor true se devuelve si la operación de login tiene éxito.
-	 *         En caso contrario se devuelve false.
+	 * @param user		El parámetro user tiene dos elementos: nombre (name) y contraseña (pwd).
+	 * @return response	El valor true se devuelve si la operación de login tiene éxito. En caso 
+	 * 					contrario se devuelve false.
 	 */
 	public es.upm.fi.sos.t3.usermanagement.Response login(
 			es.upm.fi.sos.t3.usermanagement.User user) {
@@ -71,7 +70,12 @@ public class UserManagementWSSkeleton {
 		User u;
 		Response response = new Response();
 		response.setResponse(false);
-
+		
+		String serviceGroupContextId;
+		serviceGroupContextId = MessageContext.getCurrentMessageContext().getServiceGroupContextId();
+		
+		System.out.println("login: " + serviceGroupContextId);
+		
 		if (users.containsKey(user.getName())) {
 			// User is registered.
 			u = users.get(user.getName());
@@ -180,13 +184,12 @@ public class UserManagementWSSkeleton {
 		// TODO: Our code
 		System.out.println("Init session");
 		System.out.println(serviceContext.getGroupName());
-		System.out.println(serviceContext.getProperty("USER"));
 	}
 
 	// Funciton will be called when a session ends
 	public void destroy(ServiceContext serviceContext) {
 		// TODO: Our code
 		System.out.println("Destroy session");
-
+		logout();
 	}
 }
