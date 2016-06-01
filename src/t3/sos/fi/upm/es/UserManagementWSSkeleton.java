@@ -20,6 +20,7 @@ import es.upm.fi.sos.t3.usermanagement.User;
 public class UserManagementWSSkeleton {
 	private User superUser;
 	private Map<String, User> users;
+	private Map<String, ServiceContext> sessions;
 	private static int instance = 0;
 	
 	public UserManagementWSSkeleton(){
@@ -68,10 +69,11 @@ public class UserManagementWSSkeleton {
 		if (users.containsKey(user.getName())) {
 			// User is registered.
 			u = users.get(user.getName());
-			if (u.getPwd().equals(user.getPwd()))
+			if (u.getPwd().equals(user.getPwd())){
 				// Initialize and save session
 				// TODO: how to init a session??
 				response.setResponse(true);
+			}
 		}	
 		
 		return response;
@@ -132,10 +134,15 @@ public class UserManagementWSSkeleton {
 	// Function will be called when a new session starts
 	public void init(ServiceContext serviceContext){
 		// TODO: Our code
+		System.out.println("Init session");
+		System.out.println(serviceContext.getGroupName());
+		System.out.println(serviceContext.getProperty("USER"));
 	}
 	
 	// Funciton will be called when a session ends
 	public void destroy(ServiceContext serviceContext){
 		// TODO: Our code
+		System.out.println("Destroy session");
+		
 	}
 }
