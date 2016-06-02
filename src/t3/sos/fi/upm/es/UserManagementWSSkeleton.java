@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.apache.axis2.context.MessageContext;
 import org.apache.axis2.context.ServiceContext;
-import org.apache.axis2.context.SessionContext;
 
 import es.upm.fi.sos.t3.usermanagement.Response;
 import es.upm.fi.sos.t3.usermanagement.User;
@@ -20,17 +19,14 @@ import es.upm.fi.sos.t3.usermanagement.User;
  * UserManagementWSSkeleton java skeleton for the axisService
  */
 public class UserManagementWSSkeleton {
-	private User superUser;
-	private Map<String, User> users;
-	private Map<String, String> sessions;
+	private static User superUser = new User();
+	private static Map<String, User> users = new HashMap<String, User>();
+	private static Map<String, String> sessions = new HashMap<String, String>();
 	private static int instance = 0;
 
 	public UserManagementWSSkeleton() {
 		System.out.println("Creando nueva instancia. Hasta ahora hay: "
 				+ (++instance));
-
-		users = new HashMap<String, User>();
-		superUser = new User();
 
 		// Set the superuser
 		superUser.setName("admin");
@@ -47,42 +43,58 @@ public class UserManagementWSSkeleton {
 	 * @return
 	 */
 	public void logout() {
-		// TODO : fill this with the necessary business logic
+		System.out.println("#Logout");
+		String serviceGroupContextId;
+		serviceGroupContextId = MessageContext.getCurrentMessageContext()
+				.getServiceGroupContextId();
 
+		sessions.remove(serviceGroupContextId);
+		printSessions();
+		printUser();
 	}
 
 	/**
-	 * Cada llamada a esta operación comienza una nueva sesión para un usuario (user). La respuesta (Response) es un
-	 * booleano. Si esta operación tiene éxito, el usuario podrá llamar al resto de las operaciones del servicio 
-	 * usando esa misma sesión. 
+	 * Cada llamada a esta operación comienza una nueva sesión para un usuario
+	 * (user). La respuesta (Response) es un booleano. Si esta operación tiene
+	 * éxito, el usuario podrá llamar al resto de las operaciones del servicio
+	 * usando esa misma sesión.
 	 * 
 	 * Si se llama a cualquier otra operación del servicio (salvo logout) sin
 	 * haber comenzado una sesión con éxito, la operación llamada devolverá
 	 * siempre false.
 	 * 
-	 * @param user		El parámetro user tiene dos elementos: nombre (name) y contraseña (pwd).
-	 * @return response	El valor true se devuelve si la operación de login tiene éxito. En caso 
-	 * 					contrario se devuelve false.
+	 * @param user
+	 *            El parámetro user tiene dos elementos: nombre (name) y
+	 *            contraseña (pwd).
+	 * @return response El valor true se devuelve si la operación de login tiene
+	 *         éxito. En caso contrario se devuelve false.
 	 */
 	public es.upm.fi.sos.t3.usermanagement.Response login(
 			es.upm.fi.sos.t3.usermanagement.User user) {
+		System.out.println("#Login");
 
-		User u;
+		User u = null;
 		Response response = new Response();
 		response.setResponse(false);
-		
-		String serviceGroupContextId;
-		serviceGroupContextId = MessageContext.getCurrentMessageContext().getServiceGroupContextId();
-		
-		System.out.println("login: " + serviceGroupContextId);
-		
+
+		String serviceGroupContextId = MessageContext.getCurrentMessageContext()
+				.getServiceGroupContextId();
+
+		if (sessions.containsKey(serviceGroupContextId)) {
+			// Session already created
+			response.setResponse(true);
+			printSessions();
+			return response;
+		}
+
 		if (users.containsKey(user.getName())) {
 			// User is registered.
 			u = users.get(user.getName());
 			if (u.getPwd().equals(user.getPwd())) {
-				// Initialize and save session
-				// TODO: how to init a session??
+				// Save session
+				sessions.put(serviceGroupContextId, user.getName());
 				response.setResponse(true);
+				printSessions();
 			}
 		}
 
@@ -105,9 +117,14 @@ public class UserManagementWSSkeleton {
 	 */
 	public es.upm.fi.sos.t3.usermanagement.Response addUser(
 			es.upm.fi.sos.t3.usermanagement.User user1) {
+		System.out.println("#addUser");
 
-		// TODO test if superuser is calling the method and return false if it is not the superuser
 		Response response = new Response();
+		response.setResponse(false);
+
+		// Is not the superuser
+		if (getUserSession(superUser.getName()) == null)
+			return response;
 
 		if (users.containsKey(user1.getName()))
 			// user already existing
@@ -115,6 +132,7 @@ public class UserManagementWSSkeleton {
 		else {
 			// user not existing
 			users.put(user1.getName(), user1);
+			printUser();
 			response.setResponse(true);
 		}
 
@@ -135,18 +153,26 @@ public class UserManagementWSSkeleton {
 	 */
 	public es.upm.fi.sos.t3.usermanagement.Response changePassword(
 			es.upm.fi.sos.t3.usermanagement.PasswordPair passwordPair) {
+		System.out.println("#changePassword");
 
-		// TODO check if user started session
-		Response response = new Response();
 		User user = null; // TODO get user from session
+		Response response = new Response();
+		String session = MessageContext.getCurrentMessageContext()
+				.getServiceGroupContextId();
 
-		if (user.getPwd().equals(passwordPair.getOldpwd())) {
-			// passwords correct
-			user.setPwd(passwordPair.getNewpwd());
-			response.setResponse(true);
-		} else
-			response.setResponse(false);
 
+		response.setResponse(false);			
+		
+		if (sessions.containsKey(session)){
+			// User has already started a session and is therefore also registered
+			user = users.get(sessions.get(session));
+			if (user.getPwd().equals(passwordPair.getOldpwd())) {
+				// Passwords correct
+				user.setPwd(passwordPair.getNewpwd());
+				response.setResponse(true);
+			} 			
+		}
+					
 		return response;
 	}
 
@@ -163,33 +189,66 @@ public class UserManagementWSSkeleton {
 	 */
 	public es.upm.fi.sos.t3.usermanagement.Response removeUser(
 			es.upm.fi.sos.t3.usermanagement.Username username) {
-		
-		// TODO check if superuser is calling this method and return false if it is not the superuser
+		System.out.println("#removeUser");
 
 		Response response = new Response();
+		response.setResponse(false);
+
+		// Is not the superuser
+		if (getUserSession(superUser.getName()) == null)
+			return response;
 
 		if (users.containsKey(username.getUsername())) {
 			// user existing
 			users.remove(username.getUsername());
+			sessions.remove(getUserSession(username.getUsername()));
 			response.setResponse(true);
-		} else
+			printUser();
+			printSessions();
+		} else {
 			// user not existing
 			response.setResponse(false);
+		}
 
 		return response;
+	}
+
+	private String getUserSession(String username) {
+		for (Map.Entry<String, String> entry : sessions.entrySet()) {
+			if (entry.getValue().equals(username))
+				return entry.getKey();
+		}
+
+		// Superuser not logged in
+		return null;
 	}
 
 	// Function will be called when a new session starts
 	public void init(ServiceContext serviceContext) {
 		// TODO: Our code
 		System.out.println("Init session");
-		System.out.println(serviceContext.getGroupName());
 	}
 
-	// Funciton will be called when a session ends
+	// Function will be called when a session ends
 	public void destroy(ServiceContext serviceContext) {
 		// TODO: Our code
 		System.out.println("Destroy session");
 		logout();
+	}
+	
+	private void printUser(){
+		System.out.println("Print Users: ");
+		for(Map.Entry<String, User> entry : users.entrySet()){
+			System.out.println(entry.getKey());
+		}
+		System.out.println();
+	}
+	
+	private void printSessions(){
+		System.out.println("Print sessions: ");
+		for(Map.Entry<String, String> entry : sessions.entrySet()){
+			System.out.println(entry.getKey() + ", " + entry.getValue());
+		}
+		System.out.println();
 	}
 }
